@@ -51,4 +51,4 @@ def run_kmeans(data, k, init_method):
     return result
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=3000)  # Set Flask to run on port 3000

@@ -23,12 +23,13 @@ jobs:
 
     - name: Install Python and Node.js Dependencies
       run: |
-        pip install -r requirements.txt
+        python -m venv venv
+        venv/bin/pip install -r requirements.txt
         npm install --prefix static
 
     - name: Run Application
       run: |
         make run &
         sleep 10
-        # Check if server is running
-        curl -f http://localhost:5000 || exit 1
+        # Check if server is running on port 3000
+        curl -f http://localhost:3000 || exit 1
