@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KMeans Clustering Visualization</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>KMeans Clustering Visualization</h1>
+    <div>
+        <label for="initialization">Initialization Method:</label>
+        <select id="initialization">
+            <option value="random">Random</option>
+            <option value="farthest">Farthest First</option>
+            <option value="kmeans++">KMeans++</option>
+            <option value="manual">Manual</option>
+        </select>
+    </div>
+    <div>
+        <button id="generate-dataset">Generate New Dataset</button>
+        <button id="step-through">Step Through</button>
+        <button id="converge">Go to Convergence</button>
+        <button id="reset">Reset</button>
+    </div>
+    <canvas id="visualization-canvas"></canvas>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+</body>
+</html>
