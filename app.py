@@ -2,7 +2,8 @@ import subprocess
 import json
 from flask import Flask, render_template, jsonify, request
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
+
 
 # Route to render the main HTML page
 @app.route('/')
@@ -12,17 +13,20 @@ def index():
 # API endpoint to generate a new random dataset
 @app.route('/generate_dataset', methods=['GET'])
 def generate_dataset():
-    data = [{'x': random.uniform(0, 100), 'y': random.uniform(0, 100)} for _ in range(100)]
+    import random
+    data = [{'x': random.uniform(-10, 10), 'y': random.uniform(-10, 10)} for _ in range(200)]
     return jsonify(data)
+
 
 # API endpoint to perform KMeans clustering
 @app.route('/kmeans', methods=['POST'])
 def perform_kmeans():
     data = request.json['data']
-    k = request.json['k']
+    k = request.json['k']  # Get the value of k from the request
     init_method = request.json['initMethod']
     result = run_kmeans(data, k, init_method)
     return jsonify(result)
+
 
 def run_kmeans(data, k, init_method):
     # Prepare the input data for the Node.js script
@@ -48,7 +52,11 @@ def run_kmeans(data, k, init_method):
 
     # Parse the output from the Node.js script
     result = json.loads(stdout.decode())
-    return result
+    return {
+        "centroids": result['centroids'],
+        "clusters": result['clusters'],
+        "steps": result.get('steps', [])  # Include steps if returned by the Node.js script
+    }
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=3000)  # Set Flask to run on port 3000
+    app.run(host='127.0.0.1', port=3000, debug=True)  # Set host to '127.0.0.1' to use localhost

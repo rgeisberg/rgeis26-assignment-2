@@ -5,102 +5,118 @@ import {
     kmeansPlusPlusInit,
     assignClusters,
     updateCentroids
-} from './kmeans.js';
+} from './kmeans.js';  // Import your custom KMeans functions
 
 document.addEventListener('DOMContentLoaded', function () {
-    const canvas = document.getElementById('visualization-canvas');
-    const ctx = canvas.getContext('2d');
-
-    // Initialize the canvas size
-    canvas.width = 800;
-    canvas.height = 600;
+    console.log("index.js is loaded and ready!");
 
     let dataset = [];
     let centroids = [];
     let clusters = [];
+    let steps = [];
+    let currentStep = 0;
 
     // Function to generate a new dataset
     async function generateDataset() {
+        console.log("Generating new dataset...");
         const response = await fetch('/generate_dataset');
-        dataset = await response.json();
-        drawPoints(dataset);
+        if (response.ok) {
+            dataset = await response.json();
+            console.log("Dataset generated:", dataset);
+            plotData(dataset);  // Plot the dataset using Plotly
+
+            // Enable the step-through and converge buttons after generating a new dataset
+            document.getElementById('step-through').disabled = false;
+            document.getElementById('converge').disabled = false;
+        } else {
+            console.error("Failed to generate dataset");
+        }
     }
 
-    // Function to perform KMeans clustering
-    async function performKMeans(initMethod, k) {
-                let currentStep = 0;
-        let steps = [];
+    // Function to plot the data using Plotly.js
+    function plotData(points) {
+        const trace = {
+            x: points.map(p => p.x),  // X values
+            y: points.map(p => p.y),  // Y values
+            mode: 'markers',  // Display as scatter plot
+            type: 'scatter',
+            marker: { size: 10, color: 'blue' }
+        };
 
-        async function performKMeans(initMethod, k) {
-            const response = await fetch('/kmeans', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    data: dataset,
-                    k: k,
-                    initMethod: initMethod
-                })
-            });
-            const result = await response.json();
-            steps = result.steps;  // Backend should now return an array of steps
-            currentStep = 0;
-            displayStep();
+        const layout = {
+            title: 'KMeans Clustering Data',
+            xaxis: { range: [-10, 10], title: 'X' },
+            yaxis: { range: [-10, 10], title: 'Y' },
+            width: 800,
+            height: 600
+        };
+
+        Plotly.newPlot('graph-container', [trace], layout);  // Plot the data in the graph-container div
+    }
+
+    // Function to perform KMeans clustering using custom algorithms
+    async function performKMeans(initMethod) {
+        const kValue = document.getElementById('k-value').value;
+        
+        // Using the custom KMeans implementation from your `kmeans.js`
+        let centroids;
+        switch (initMethod) {
+            case 'random':
+                centroids = randomInit(dataset, kValue);
+                break;
+            case 'farthest':
+                centroids = farthestFirstInit(dataset, kValue);
+                break;
+            case 'kmeans++':
+                centroids = kmeansPlusPlusInit(dataset, kValue);
+                break;
+            default:
+                centroids = randomInit(dataset, kValue);
         }
 
-        function displayStep() {
-            if (currentStep < steps.length) {
-                const step = steps[currentStep];
-                centroids = step.centroids;
-                clusters = step.clusters;
-                drawClusters(clusters, centroids);
-                currentStep++;
-            }
-        }
+        const result = kMeans(dataset, kValue, centroids);  // Call your custom KMeans function
+        clusters = result.clusters;
+        centroids = result.centroids;
 
-        // Add event listener for step through button
-        document.getElementById('step-through').addEventListener('click', displayStep);
+        plotClusters(clusters, centroids);  // Plot the resulting clusters and centroids
     }
 
-    // Function to draw data points on the canvas
-    function drawPoints(points) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        points.forEach(point => {
-            ctx.beginPath();
-            ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#000';
-            ctx.fill();
-        });
-    }
-
-    // Function to draw clusters and centroids
-    function drawClusters(clusters, centroids) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'];
-        clusters.forEach((cluster, index) => {
-            cluster.forEach(point => {
-                ctx.beginPath();
-                ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
-                ctx.fillStyle = colors[index % colors.length];
-                ctx.fill();
-            });
+    // Function to plot clusters and centroids using Plotly.js
+    function plotClusters(clusters, centroids) {
+        const clusterTraces = clusters.map((cluster, index) => {
+            return {
+                x: cluster.map(p => p.x),
+                y: cluster.map(p => p.y),
+                mode: 'markers',
+                type: 'scatter',
+                marker: { size: 10 },
+                name: `Cluster ${index + 1}`
+            };
         });
 
-        centroids.forEach(centroid => {
-            ctx.beginPath();
-            ctx.arc(centroid.x, centroid.y, 10, 0, Math.PI * 2);
-            ctx.fillStyle = '#000';
-            ctx.strokeStyle = '#FFF';
-            ctx.lineWidth = 2;
-            ctx.fill();
-            ctx.stroke();
-        });
+        const centroidTrace = {
+            x: centroids.map(c => c.x),
+            y: centroids.map(c => c.y),
+            mode: 'markers',
+            type: 'scatter',
+            marker: { size: 15, symbol: 'x', color: 'red' },
+            name: 'Centroids'
+        };
+
+        const layout = {
+            title: 'KMeans Clustering Data',
+            xaxis: { range: [-10, 10], title: 'X' },
+            yaxis: { range: [-10, 10], title: 'Y' },
+            width: 800,
+            height: 600
+        };
+
+        Plotly.newPlot('graph-container', [...clusterTraces, centroidTrace], layout);  // Plot clusters and centroids
     }
 
     // Add event listeners to buttons
-    document.getElementById('generate-dataset').addEventListener('click', generateDataset);
-    document.getElementById('step-through').addEventListener('click', () => performKMeans('random', 3));  // Example with random method and k = 3
-    document.getElementById('converge').addEventListener('click', () => performKMeans('kmeans++', 3));   // Example with kmeans++ method and k = 3
-    document.getElementById('reset').addEventListener('click', () => drawPoints(dataset));
+    document.getElementById('generate-dataset').addEventListener('click', () => {generateDataset(); });
+    document.getElementById('step-through').addEventListener('click', () => performKMeans('random'));
+    document.getElementById('converge').addEventListener('click', () => performKMeans('kmeans++'));
+    document.getElementById('reset').addEventListener('click', () => plotData(dataset));  // Reset to original data
 });

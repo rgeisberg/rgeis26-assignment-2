@@ -3,27 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KMeans Clustering Visualization</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>KMeans Clustering</title>
+    <style>
+        #visualization {
+            border: 1px solid black;
+            margin: 20px 0;
+        }
+        #controls {
+            margin-bottom: 20px;
+        }
+        .btn {
+            margin: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>KMeans Clustering Visualization</h1>
-    <div>
-        <label for="initialization">Initialization Method:</label>
-        <select id="initialization">
+    <div id="controls">
+        <label for="init-method">Initialization Method:</label>
+        <select id="init-method">
             <option value="random">Random</option>
             <option value="farthest">Farthest First</option>
             <option value="kmeans++">KMeans++</option>
             <option value="manual">Manual</option>
         </select>
+        <button id="new-dataset" class="btn">New Dataset</button>
+        <button id="step" class="btn">Step</button>
+        <button id="converge" class="btn">Converge</button>
+        <button id="reset" class="btn">Reset</button>
     </div>
-    <div>
-        <button id="generate-dataset">Generate New Dataset</button>
-        <button id="step-through">Step Through</button>
-        <button id="converge">Go to Convergence</button>
-        <button id="reset">Reset</button>
-    </div>
-    <canvas id="visualization-canvas"></canvas>
-    <script src="{{ url_for('static', filename='index.js') }}"></script>
+    <canvas id="visualization" width="800" height="600"></canvas>
+    <script src="static/kmeans.js"></script>
 </body>
 </html>
