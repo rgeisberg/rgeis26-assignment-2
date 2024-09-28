@@ -12,7 +12,7 @@ const k = 3; // Number of clusters
 const pointRadius = 5;
 
 // Generate a new random dataset
-function generateDataset(numPoints = 100) {
+function generateDataset(numPoints = 500) {
     dataPoints = [];
     for (let i = 0; i < numPoints; i++) {
         dataPoints.push({
@@ -67,8 +67,29 @@ function initializeCentroids(method) {
             }
         }
     } else if (method === 'manual') {
-        // Enable manual selection on the canvas
+        // Allow manual selection on the canvas
         alert("Click on the canvas to select centroids.");
+        let canvas = document.getElementById('yourCanvasId'); // Replace with your canvas ID
+        let clickHandler = function(event) {
+            // Get click position relative to the canvas
+            let rect = canvas.getBoundingClientRect();
+            let x = event.clientX - rect.left;
+            let y = event.clientY - rect.top;
+
+            // Assuming dataPoints are in the same coordinate space as canvas
+            centroids.push({ x: x, y: y });
+            draw(); // Optional: Update canvas to show new centroids
+
+            // Check if we've selected enough centroids
+            if (centroids.length >= k) {
+                canvas.removeEventListener('click', clickHandler);
+                alert("All centroids selected!");
+                // Proceed to the next step in your K-Means algorithm
+            }
+        };
+
+        // Attach click handler to the canvas
+        canvas.addEventListener('click', clickHandler);
     }
 }
 
@@ -105,32 +126,36 @@ function hasConverged(oldCentroids, newCentroids) {
 
 // Step through the KMeans algorithm
 function stepKMeans() {
-    if (currentIteration >= maxIterations) return;
+    if (currentIteration >= maxIterations) return true;
 
     let oldCentroids = [...centroids];
-    assignClusters();
-    updateCentroids();
+    assignClusters(); // Function that assigns points to nearest centroids
+    updateCentroids(); // Function that recalculates the centroids
 
     if (hasConverged(oldCentroids, centroids)) {
         alert("Converged!");
-        return;
+        return true; // Return true to indicate convergence
     }
 
     currentIteration++;
-    draw();
+    draw(); // Function that draws the current state of clusters and centroids
+
+    return false; // Not yet converged, keep running
 }
 
 // Run KMeans until convergence
 function runToConvergence() {
     while (currentIteration < maxIterations) {
-        stepKMeans();
+        if (stepKMeans()) {
+            break; // Stop the loop if converged or max iterations reached
+        }
     }
 }
+
 
 // Draw the data points and centroids
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-
     // Draw data points
     for (let point of dataPoints) {
         ctx.beginPath();
@@ -142,6 +167,7 @@ function draw() {
     // Draw centroids
     for (let i = 0; i < centroids.length; i++) {
         let centroid = centroids[i];
+        console.log(`Centroid ${i}: x = ${centroid.x}, y = ${centroid.y}`);
         ctx.beginPath();
         ctx.arc(centroid.x, centroid.y, pointRadius * 1.5, 0, 2 * Math.PI);
         ctx.fillStyle = `rgb(${i * 80}, 0, 0)`;
@@ -170,6 +196,7 @@ document.getElementById('reset').addEventListener('click', () => {
     currentIteration = 0;
     draw();
 });
+document.getElementById('visualization').addEventListener('click', clickHandler)
 
 // Initialize with a random dataset and draw
 generateDataset();

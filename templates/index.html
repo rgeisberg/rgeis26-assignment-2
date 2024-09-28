@@ -26,11 +26,14 @@
             <option value="kmeans++">KMeans++</option>
             <option value="manual">Manual</option>
         </select>
+        <button id="set-k" class="btn">Set k</button>
+        <input type="number" id="numberInput" value="3" step="1" min="1" max="100" placeholder="Number of Clusters (k)">
         <button id="new-dataset" class="btn">New Dataset</button>
         <button id="step" class="btn">Step</button>
         <button id="converge" class="btn">Converge</button>
         <button id="reset" class="btn">Reset</button>
     </div>
+    
     <canvas id="visualization" width="800" height="600"></canvas>
     <script src="static/kmeans.js"></script>
 </body>

@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to perform KMeans clustering using custom algorithms
     async function performKMeans(initMethod) {
-        const kValue = document.getElementById('k-value').value;
+
         
         // Using the custom KMeans implementation from your `kmeans.js`
         let centroids;
