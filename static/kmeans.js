@@ -1,3 +1,4 @@
+console.log("kmeans.js loaded successfully");
 const canvas = document.getElementById('visualization');
 const ctx = canvas.getContext('2d');
 
@@ -8,8 +9,10 @@ let maxIterations = 100;
 let currentIteration = 0;
 
 // Configuration
-const k = 3; // Number of clusters
+ // Number of clusters
 const pointRadius = 5;
+let k = 3;
+console.log(`Number of clusters (k): ${k}`);
 
 // Generate a new random dataset
 function generateDataset(numPoints = 500) {
@@ -30,8 +33,8 @@ function distance(p1, p2) {
 }
 
 // Initialization methods
-function initializeCentroids(method) {
-    centroids = [];
+export function initializeCentroids(method, k) { // Add 'k' as a parameter
+    centroids = []; // Make sure centroids is globally accessible or define it here if not already defined
     if (method === 'random') {
         for (let i = 0; i < k; i++) {
             centroids.push({ ...dataPoints[Math.floor(Math.random() * dataPoints.length)] });
@@ -92,6 +95,7 @@ function initializeCentroids(method) {
         canvas.addEventListener('click', clickHandler);
     }
 }
+
 
 // Assign each data point to the nearest centroid
 function assignClusters() {
@@ -174,6 +178,35 @@ function draw() {
         ctx.fill();
     }
 }
+// Example of running the existing K-Means process
+export function kMeans(dataset, kValue, initialCentroids) {
+    centroids = initialCentroids; // Set initial centroids
+    clusters = Array(kValue).fill().map(() => []); // Reset clusters
+    maxIterations = 100; // Set max iterations
+    currentIteration = 0; // Reset iteration counter
+
+    while (currentIteration < maxIterations) {
+        // Step 1: Assign points to the nearest centroids using the existing `assignClusters` function
+        assignClusters(); 
+
+        // Step 2: Update centroids using the existing `updateCentroids` function
+        let oldCentroids = [...centroids]; // Store a copy of old centroids before updating
+        updateCentroids();
+
+        // Step 3: Check for convergence using the existing `hasConverged` function
+        if (hasConverged(oldCentroids, centroids)) {
+            console.log("Converged!");
+            break; // Stop if centroids have converged
+        }
+
+        currentIteration++; // Increment the iteration counter
+    }
+
+    // Return the final clusters and centroids
+    return { clusters, centroids };
+}
+
+
 
 
 // Handle user interactions
@@ -196,9 +229,19 @@ document.getElementById('reset').addEventListener('click', () => {
     currentIteration = 0;
     draw();
 });
-document.getElementById('visualization').addEventListener('click', clickHandler)
+
+document.addEventListener('kValueChanged', (e) => {
+    k = e.detail;
+    initializeCentroids('random',k);
+    assignClusters();
+    
+
+    // Use updatedK in your k-means logic
+});
+
 
 // Initialize with a random dataset and draw
 generateDataset();
 initializeCentroids('random');
 draw();
+

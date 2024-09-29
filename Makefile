@@ -1,8 +1,8 @@
 # Install dependencies for both Python and Node.js
 install:
 	# Create a Python virtual environment and install dependencies
-	python -m venv venv
-	venv/bin/pip install -r requirements.txt
+	python3 -m venv venv
+	venv/bin/pip3 install -r requirements.txt
 	# Install Node.js dependencies for the kmeans.js file
 	npm install --prefix static
 

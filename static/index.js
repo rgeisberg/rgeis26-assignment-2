@@ -1,11 +1,7 @@
-import {
-    kMeans,
-    randomInit,
-    farthestFirstInit,
-    kmeansPlusPlusInit,
-    assignClusters,
-    updateCentroids
-} from './kmeans.js';  // Import your custom KMeans functions
+import { initializeCentroids, kMeans } from './kmeans.js';
+
+console.log("index.js loaded successfully");
+;  // Import your custom KMeans functions
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log("index.js is loaded and ready!");
@@ -15,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let clusters = [];
     let steps = [];
     let currentStep = 0;
+    let kValue = 3;
 
     // Function to generate a new dataset
     async function generateDataset() {
@@ -62,16 +59,16 @@ document.addEventListener('DOMContentLoaded', function () {
         let centroids;
         switch (initMethod) {
             case 'random':
-                centroids = randomInit(dataset, kValue);
+                centroids = initializeCentroids(dataset, kValue);
                 break;
             case 'farthest':
-                centroids = farthestFirstInit(dataset, kValue);
+                centroids = initializeCentroids(dataset, kValue);
                 break;
             case 'kmeans++':
-                centroids = kmeansPlusPlusInit(dataset, kValue);
+                centroids = initializeCentroids(dataset, kValue);
                 break;
             default:
-                centroids = randomInit(dataset, kValue);
+                centroids = initializeCentroids(dataset, kValue);
         }
 
         const result = kMeans(dataset, kValue, centroids);  // Call your custom KMeans function
@@ -115,8 +112,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Add event listeners to buttons
-    document.getElementById('generate-dataset').addEventListener('click', () => {generateDataset(); });
-    document.getElementById('step-through').addEventListener('click', () => performKMeans('random'));
+    document.getElementById('new-dataset').addEventListener('click', () => {generateDataset(); });
+    document.getElementById('step').addEventListener('click', () => performKMeans('random'));
     document.getElementById('converge').addEventListener('click', () => performKMeans('kmeans++'));
     document.getElementById('reset').addEventListener('click', () => plotData(dataset));  // Reset to original data
+    document.getElementById('set-k').addEventListener('click', () => {
+        let newK = parseInt(document.getElementById('numberInput').value);
+        if (!isNaN(newK) && newK > 0) {
+            kValue = newK;
+            document.dispatchEvent(new CustomEvent('kValueChanged', { detail: kValue }));
+            console.log(`Dispatching kValueChanged event with k = ${kValue}`);
+        } else {
+            alert('Please enter a valid number greater than 0.');
+        }
+    });
 });
